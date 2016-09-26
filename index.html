@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>To Do List</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+</head>
+<body  ng-app="myApp" ng-controller="todoCtrl">
+<div >
+<h1 style="color: Red">My Todo List</h1>
+
+<form ng-submit="todoAdd(newtodoInput)">
+    <input type="text" ng-model="newtodoInput" size="100" placeholder="Add New">
+    <input type="submit" value="Add New">
+</form>
+
+<div>Incompleted : {{remaining()}}</div>
+<div>Completed : {{todoList.length - remaining()}}</div>
+
+<a href="#" ng-click="delete()">Delete</a>
+
+<br>
+
+<div ng-repeat="todo in todoList">
+  <button type="button" ng-click="delete(todo.id)">delete</button>
+ <input type="checkbox" ng-model="todo.completed" > <span ng-bind="todo.subject"></span>
+</div>
+</div>
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<script>
+var app = angular.module('myApp', []);
+app.controller('todoCtrl', function($scope,$http) {
+    $scope.todoList = [{subject:'', done:false}];
+    $scope.remaining = function() {
+       var count = 0;
+       angular.forEach($scope.todoList, function(todo) {
+           count += todo.completed ? 0 : 1;
+       });
+         return count;
+       };
+
+
+      $scope.todoList = [];
+
+  $http.get('http://rest.learncode.academy/api/johnbob/r2-1')
+    .success(function(todos) {
+    
+      $scope.todoList = todos;
+    }).error(function(err) {
+      alert(err);
+    });
+
+     $scope.todoAdd = function(subject) {
+    $http.post('http://rest.learncode.academy/api/johnbob/r2-1', {
+      subject: subject
+    }).success(function(todo) {
+       $scope.newtodoInput = "";
+       $scope.todoList.push(todo);
+       
+        
+    }).error(function(err) {
+      // Alert if there's an error
+      return alert(err.message || "an error occurred");
+    });
+  };
+
+  $scope.delete = function(text) {
+  $http.delete('http://rest.learncode.academy/api/johnbob/r2-1/'+text)
+    .success().error(function(err) {
+      alert(err);
+    });
+
+    var oldList = $scope.todoList;
+        $scope.todoList = [];
+
+angular.forEach(oldList, function(todo) {
+            if (!todo.completed) $scope.todoList.push(todo);
+            });
+   };
+});
+
+</script>
+</body>
+</html>
+   
